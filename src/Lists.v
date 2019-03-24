@@ -1,6 +1,7 @@
 (** * Lists: Working with Structured Data *)
 
 Require Export Induction.
+Require Import Setoid.
 Module NatList.
 
 (* ###################################################### *)
@@ -298,9 +299,9 @@ Example test_countoddmembers3:
 
 Fixpoint alternate (l1 l2 : natlist) : natlist :=
   match l1 with
-    | nil => l2 
+    | nil => l2
     | cons n ns => match l2 with
-      | nil => l1 
+      | nil => l1
       | cons m ms => n :: m :: alternate ns ms
     end
   end.
@@ -346,10 +347,10 @@ Definition bag := natlist.
     [count], [sum], [add], and [member] for bags. *)
 
 Fixpoint count (v:nat) (s:bag) : nat :=
-  match s with 
+  match s with
     | nil => O
-    | cons n ns => if beq_nat v n 
-      then S (count v ns) 
+    | cons n ns => if beq_nat v n
+      then S (count v ns)
       else count v ns
   end.
 
@@ -397,59 +398,99 @@ reflexivity.
 Qed.
 
 Definition member (v:nat) (s:bag) : bool :=
-  (* FILL IN HERE *) admit.
+  match count v s with
+    | O => false
+    | _ => true
+  end.
 
 Example test_member1:             member 1 [1;4;1] = true.
- (* FILL IN HERE *) Admitted.
+Proof.
+reflexivity.
+Qed.
 
 Example test_member2:             member 2 [1;4;1] = false.
- (* FILL IN HERE *) Admitted.
-(** [] *)
+Proof.
+reflexivity.
+Qed.
 
 (** **** Exercise: 3 stars, optional (bag_more_functions)  *)
 (** Here are some more bag functions for you to practice with. *)
 
 Fixpoint remove_one (v:nat) (s:bag) : bag :=
-  (* When remove_one is applied to a bag without the number to remove,
-     it should return the same bag unchanged. *)
-  (* FILL IN HERE *) admit.
+  match s with
+    | nil => nil
+    | cons n ns => if beq_nat n v
+      then ns
+      else n :: (remove_one v ns)
+  end.
 
 Example test_remove_one1:
   count 5 (remove_one 5 [2;1;5;4;1]) = 0.
-  (* FILL IN HERE *) Admitted.
+Proof.
+reflexivity.
+Qed.
 
 Example test_remove_one2:
   count 5 (remove_one 5 [2;1;4;1]) = 0.
-  (* FILL IN HERE *) Admitted.
+Proof.
+reflexivity.
+Qed.
 
 Example test_remove_one3:
   count 4 (remove_one 5 [2;1;4;5;1;4]) = 2.
-  (* FILL IN HERE *) Admitted.
+Proof.
+reflexivity.
+Qed.
 
 Example test_remove_one4:
   count 5 (remove_one 5 [2;1;5;4;5;1;4]) = 1.
-  (* FILL IN HERE *) Admitted.
+Proof.
+reflexivity.
+Qed.
 
 Fixpoint remove_all (v:nat) (s:bag) : bag :=
-  (* FILL IN HERE *) admit.
+  match s with
+    | nil => nil
+    | cons n ns => if beq_nat n v
+      then remove_all v ns
+      else n :: (remove_all v ns)
+  end.
 
 Example test_remove_all1:  count 5 (remove_all 5 [2;1;5;4;1]) = 0.
- (* FILL IN HERE *) Admitted.
+Proof.
+reflexivity.
+Qed.
+
 Example test_remove_all2:  count 5 (remove_all 5 [2;1;4;1]) = 0.
- (* FILL IN HERE *) Admitted.
+Proof.
+reflexivity.
+Qed.
+
 Example test_remove_all3:  count 4 (remove_all 5 [2;1;4;5;1;4]) = 2.
- (* FILL IN HERE *) Admitted.
+Proof.
+reflexivity.
+Qed.
+
 Example test_remove_all4:  count 5 (remove_all 5 [2;1;5;4;5;1;4;5;1;4]) = 0.
- (* FILL IN HERE *) Admitted.
+Proof.
+reflexivity.
+Qed.
 
 Fixpoint subset (s1:bag) (s2:bag) : bool :=
-  (* FILL IN HERE *) admit.
+  match s1 with
+  | nil => true
+  | cons s ss => member s s2 && subset ss (remove_one s s2)
+  end.
 
 Example test_subset1:              subset [1;2] [2;1;4;1] = true.
- (* FILL IN HERE *) Admitted.
+Proof.
+reflexivity.
+Qed.
+
 Example test_subset2:              subset [1;2;2] [2;1;4;1] = false.
- (* FILL IN HERE *) Admitted.
-(** [] *)
+Proof.
+reflexivity.
+Qed.
 
 (** **** Exercise: 3 stars, recommended (bag_theorem)  *)
 (** Write down an interesting theorem [bag_theorem] about bags
@@ -758,7 +799,7 @@ Proof.
 
     Coq's [SearchAbout] command is quite helpful with this.  Typing
     [SearchAbout foo] will cause Coq to display a list of all theorems
-    involving [foo].  For example, try uncommenting the following line 
+    involving [foo].  For example, try uncommenting the following line
     to see a list of theorems that we have proved about [rev]: *)
 
 (*  SearchAbout rev. *)
@@ -779,29 +820,70 @@ Proof.
 Theorem app_nil_r : forall l : natlist,
   l ++ [] = l.
 Proof.
-  (* FILL IN HERE *) Admitted.
+intros l.
+induction l. {
+  reflexivity.
+} {
+  simpl.
+  rewrite IHl.
+  reflexivity.
+}
+Qed.
 
+Lemma rev_app_n : forall n : nat, forall l : natlist, rev(l ++ [n]) = n :: rev l.
+Proof.
+  intros n l.
+  induction l. {
+    simpl.
+    reflexivity.
+  } {
+    simpl.
+    rewrite IHl.
+    reflexivity.
+  }
+Qed.
 
 Theorem rev_involutive : forall l : natlist,
   rev (rev l) = l.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros l.
+  induction l. {
+    simpl.
+    reflexivity.
+  } {
+    rewrite <- IHl at 2.
+    simpl.
+    rewrite rev_app_n.
+    reflexivity.
+  }
+Qed.
 
-(** There is a short solution to the next one.  If you find yourself
+     (** There is a short solution to the next one.  If you find yourself
     getting tangled up, step back and try to look for a simpler
     way. *)
 
 Theorem app_assoc4 : forall l1 l2 l3 l4 : natlist,
   l1 ++ (l2 ++ (l3 ++ l4)) = ((l1 ++ l2) ++ l3) ++ l4.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros.
+  induction l1. {
+    simpl.
+    rewrite app_assoc.
+    reflexivity.
+  } {
+    simpl.
+    rewrite IHl1.
+    reflexivity.
+  }
+  
+Qed.
 
-(** An exercise about your implementation of [nonzeros]: *)
 
 Lemma nonzeros_app : forall l1 l2 : natlist,
   nonzeros (l1 ++ l2) = (nonzeros l1) ++ (nonzeros l2).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  
+(* FILL IN HERE *) Admitted.
 (** [] *)
 
 (** **** Exercise: 2 stars (beq_natlist)  *)
@@ -1021,7 +1103,7 @@ Proof.
 
 Module PartialMap.
 Import NatList.
-  
+
 Inductive partial_map : Type :=
   | empty  : partial_map
   | record : id -> nat -> partial_map -> partial_map.
@@ -1087,4 +1169,3 @@ Inductive baz : Type :=
 (** [] *)
 
 (** $Date: 2016-05-24 14:00:08 -0400 (Tue, 24 May 2016) $ *)
-
