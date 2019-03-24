@@ -3,7 +3,8 @@
 (** First, we import all of our definitions from the previous
     chapter. *)
 
-Require Import Basics.
+Require Export Basics.
+
 
 (** For the [Require Export] to work, you first need to use
     [coqc] to compile [Basics.v] into [Basics.vo].  This is like
@@ -340,6 +341,7 @@ induction m. {
 }
 Qed.
 
+Print mult_comm.
 
 (** **** Exercise: 3 stars, optional (more_exercises)  *)
 (** Take a piece of paper.  For each of the following theorems, first
@@ -353,17 +355,32 @@ Qed.
 Theorem leb_refl : forall n:nat,
   true = leb n n.
 Proof.
-  (* FILL IN HERE *) Admitted.
+intros.
+induction n. {
+  simpl. reflexivity.
+} {
+  simpl. exact IHn.
+}
+Qed.
+
 
 Theorem zero_nbeq_S : forall n:nat,
   beq_nat 0 (S n) = false.
 Proof.
-  (* FILL IN HERE *) Admitted.
+intros. simpl. 
+reflexivity.
+Qed.
 
 Theorem andb_false_r : forall b : bool,
   andb b false = false.
 Proof.
-  (* FILL IN HERE *) Admitted.
+intros.
+destruct b. {
+  simpl. reflexivity.
+} {
+  simpl. reflexivity.
+}
+Qed.
 
 Theorem plus_ble_compat_l : forall n m p : nat,
   leb n m = true -> leb (p + n) (p + m) = true.
