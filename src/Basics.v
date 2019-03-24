@@ -807,8 +807,11 @@ Theorem mult_S_1 : forall n m : nat,
   m = S n ->
   m * (1 + n) = m * m.
 Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+intros n m H.
+simpl.
+rewrite <- H.
+reflexivity.
+Qed.
 
 
 (* ###################################################################### *)
@@ -1014,8 +1017,14 @@ Qed.
 Theorem andb_true_elim2 : forall b c : bool,
   andb b c = true -> c = true.
 Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+intros [] [].
+  - intros t. reflexivity.
+  - intros f. simpl in f. exact f.
+  - intros f. simpl in f. discriminate f.
+  - intros f. simpl in f. exact f.
+Qed.
+
+Print andb_true_elim2.
 
 (** **** Exercise: 1 star (zero_nbeq_plus_1)  *)
 Theorem zero_nbeq_plus_1 : forall n : nat,

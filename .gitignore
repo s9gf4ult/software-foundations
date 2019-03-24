@@ -6,3 +6,4 @@
 *.vo
 src/all.pdf
 src/html
+*.aux
