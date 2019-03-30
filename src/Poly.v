@@ -741,11 +741,34 @@ Proof. reflexivity.  Qed.
 (** Show that [map] and [rev] commute.  You may need to define an
     auxiliary lemma. *)
 
+Lemma map_app : forall (X Y: Type) (f : X -> Y) (m n : list X), map f (m ++ n) = map f m ++ map f n.
+Proof.
+  intros.  
+  induction m. {
+    simpl. reflexivity.
+  } {
+    simpl.
+    rewrite IHm.
+    reflexivity.
+  }
+Qed.
 
+  
 Theorem map_rev : forall (X Y : Type) (f : X -> Y) (l : list X),
   map f (rev l) = rev (map f l).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros.
+  induction l. {
+    simpl. reflexivity.
+  } {
+    simpl.
+    rewrite <- IHl.
+    rewrite map_app.
+    reflexivity.
+  }
+Qed.
+
+  
 (** [] *)
 
 (** **** Exercise: 2 stars, recommended (flat_map)  *)
@@ -762,13 +785,16 @@ Proof.
 
 Fixpoint flat_map {X Y:Type} (f:X -> list Y) (l:list X)
                    : (list Y) :=
-  (* FILL IN HERE *) admit.
+  match l with
+    | nil => nil
+    | cons n ns => f n ++ @flat_map X Y f ns
+  end.
+
 
 Example test_flat_map1:
   flat_map (fun n => [n;n;n]) [1;5;4]
   = [1; 1; 1; 5; 5; 5; 4; 4; 4].
- (* FILL IN HERE *) Admitted.
-(** [] *)
+Proof. reflexivity. Qed.
 
 (** Lists are not the only inductive type that we can write a
     [map] function for.  Here is the definition of [map] for the
@@ -909,7 +935,18 @@ Proof. reflexivity. Qed.
 
 Theorem fold_length_correct : forall X (l : list X),
   fold_length l = length l.
-(* FILL IN HERE *) Admitted.
+Proof.
+  intros.
+  induction l. {
+    reflexivity.
+  } {
+    simpl.
+    rewrite <- IHl.
+    unfold fold_length.
+    simpl. reflexivity.
+  }
+Qed.
+
 (** [] *)
 
 (** **** Exercise: 3 stars (fold_map)  *)
@@ -917,10 +954,22 @@ Theorem fold_length_correct : forall X (l : list X),
     below. *)
 
 Definition fold_map {X Y:Type} (f : X -> Y) (l : list X) : list Y :=
-(* FILL IN HERE *) admit.
+  fold (fun x ys => cons (f x) ys) l [].
 
-(** Write down a theorem [fold_map_correct] in Coq stating that
-   [fold_map] is correct, and prove it. *)
+Lemma fold_map_correct : forall (X Y : Type) (f : X -> Y) (l : list X)
+  , map f l = fold_map f l.
+Proof.
+  intros.
+  induction l. {
+    reflexivity.
+  } {
+    simpl.
+    rewrite -> IHl.
+    unfold fold_map.
+    simpl. reflexivity.
+  }
+Qed.
+  
 
 (* FILL IN HERE *)
 (** [] *)
@@ -949,7 +998,9 @@ Definition prod_curry {X Y Z : Type}
 
 Definition prod_uncurry {X Y Z : Type}
   (f : X -> Y -> Z) (p : X * Y) : Z :=
-  (* FILL IN HERE *) admit.
+  match p with
+  | pair x y => f x y
+  end.
 
 (** As a trivial example of the usefulness of currying, we can use it
     to shorten one of the examples that we saw above: *)
@@ -1002,6 +1053,7 @@ Proof.
     returns [f] iterated [n] times. *)
 
 Module Church.
+
 Definition nat := forall X : Type, (X -> X) -> X -> X.
 
 (** Let's see how to write some numbers with this notation. Iterating
@@ -1036,45 +1088,53 @@ Definition three : nat := @doit3times.
 (** Successor of a natural number: *)
 
 Definition succ (n : nat) : nat :=
-  (* FILL IN HERE *) admit.
+  fun (X : Type) (f : X -> X) (x : X) => f (n X f x).
 
 Example succ_1 : succ zero = one.
-Proof. (* FILL IN HERE *) Admitted.
+Proof. reflexivity.
+Qed.
 
+  
 Example succ_2 : succ one = two.
-Proof. (* FILL IN HERE *) Admitted.
+Proof. reflexivity.
+Qed.
+
 
 Example succ_3 : succ two = three.
-Proof. (* FILL IN HERE *) Admitted.
+Proof. reflexivity.
+Qed.
+
 
 (** Addition of two natural numbers: *)
 
 Definition plus (n m : nat) : nat :=
-  (* FILL IN HERE *) admit.
+  fun (X : Type) (f : X -> X) (x : X) => n X f (m X f x).
 
 Example plus_1 : plus zero one = one.
-Proof. (* FILL IN HERE *) Admitted.
+Proof. reflexivity.
+Qed.
 
 Example plus_2 : plus two three = plus three two.
-Proof. (* FILL IN HERE *) Admitted.
+Proof. reflexivity. Qed.
 
 Example plus_3 :
   plus (plus two two) three = plus one (plus three three).
-Proof. (* FILL IN HERE *) Admitted.
+Proof. reflexivity. Qed.
 
 (** Multiplication: *)
 
 Definition mult (n m : nat) : nat :=
-  (* FILL IN HERE *) admit.
+  fun (X : Type) (f : X -> X) (x : X) => n X (m X f) x.
 
 Example mult_1 : mult one one = one.
-Proof. (* FILL IN HERE *) Admitted.
+Proof. reflexivity. Qed.
 
 Example mult_2 : mult zero (plus three three) = zero.
-Proof. (* FILL IN HERE *) Admitted.
+Proof. reflexivity. Qed.
+
 
 Example mult_3 : mult two three = plus three three.
-Proof. (* FILL IN HERE *) Admitted.
+Proof. reflexivity. Qed.
 
 (** Exponentiation: *)
 
@@ -1083,17 +1143,21 @@ Proof. (* FILL IN HERE *) Admitted.
     a "Universe inconsistency" error, try iterating over a different
     type: [nat] itself is usually problematic.) *)
 
-Definition exp (n m : nat) : nat :=
-  (* FILL IN HERE *) admit.
+Check forall (_ : Type), Type.
+
+Definition exp (n m : nat) : nat := 
+  fun (X : Type) (f : X -> X) (x : X) => m _ (n _) f x.
 
 Example exp_1 : exp two two = plus two two.
-Proof. (* FILL IN HERE *) Admitted.
+Proof. reflexivity. Qed.
 
 Example exp_2 : exp three two = plus (mult two (mult two two)) one.
-Proof. (* FILL IN HERE *) Admitted.
+Proof. reflexivity. Qed.
+
 
 Example exp_3 : exp three zero = one.
-Proof. (* FILL IN HERE *) Admitted.
+Proof. reflexivity. Qed.
+
 
 End Church.
 (** [] *)
