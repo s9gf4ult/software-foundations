@@ -161,10 +161,10 @@ Definition mylist3 := [1;2;3].
    will be parsed, as we'd expect, as [(1 + 2) :: [3]] rather than [1
    + (2 :: [3])].
 
-   (Expressions like "[1 + 2 :: [3]]" can be a little confusing when 
-   you read them in a .v file.  The inner brackets, around 3, indicate 
-   a list, but the outer brackets, which are invisible in the HTML 
-   rendering, are there to instruct the "coqdoc" tool that the bracketed 
+   (Expressions like "[1 + 2 :: [3]]" can be a little confusing when
+   you read them in a .v file.  The inner brackets, around 3, indicate
+   a list, but the outer brackets, which are invisible in the HTML
+   rendering, are there to instruct the "coqdoc" tool that the bracketed
    part should be displayed as Coq code rather than running text.)
 
    The second and third [Notation] declarations above introduce the
@@ -255,18 +255,28 @@ Proof. reflexivity.  Qed.
     what these functions should do. *)
 
 Fixpoint nonzeros (l:natlist) : natlist :=
-  (* FILL IN HERE *) admit.
-
+  match l with
+  | nil => nil
+  | cons O s => nonzeros s
+  | cons (S n) s => cons (S n) (nonzeros s)
+  end. 
+  
 Example test_nonzeros:
   nonzeros [0;1;0;2;3;0;0] = [1;2;3].
-  (* FILL IN HERE *) Admitted.
+Proof. reflexivity.  Qed.
 
 Fixpoint oddmembers (l:natlist) : natlist :=
-  (* FILL IN HERE *) admit.
+  match l with
+  | nil => nil
+  | cons n s => if oddb n
+                then cons n (oddmembers s)
+                else oddmembers s
+  end.
 
+  
 Example test_oddmembers:
   oddmembers [0;1;0;2;3;0;0] = [1;3].
-  (* FILL IN HERE *) Admitted.
+Proof. reflexivity.  Qed.
 
 Fixpoint countoddmembers (l:natlist) : nat :=
   (* FILL IN HERE *) admit.
@@ -875,15 +885,28 @@ Proof.
     rewrite IHl1.
     reflexivity.
   }
-  
+
 Qed.
 
 Lemma nonzeros_app : forall l1 l2 : natlist,
   nonzeros (l1 ++ l2) = (nonzeros l1) ++ (nonzeros l2).
 Proof.
-  
-(* FILL IN HERE *) Admitted.
-(** [] *)
+  intros l1 l2.
+  induction l1. {
+    simpl.
+    reflexivity.
+  } {
+    induction n. {
+      simpl.
+      rewrite IHl1.
+      reflexivity.
+    } {
+      simpl.
+      rewrite IHl1.
+      reflexivity.
+    }
+  }
+Qed.
 
 (** **** Exercise: 2 stars (beq_natlist)  *)
 (** Fill in the definition of [beq_natlist], which compares
@@ -891,6 +914,7 @@ Proof.
     yields [true] for every list [l]. *)
 
 Fixpoint beq_natlist (l1 l2 : natlist) : bool :=
+  
   (* FILL IN HERE *) admit.
 
 Example test_beq_natlist1 :
