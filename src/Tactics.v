@@ -77,10 +77,12 @@ Theorem silly_ex :
      evenb 3 = true ->
      oddb 4 = true.
 Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+  intros.
+  apply H.
+  apply H0.     
+Qed.
 
-(** To use the [apply] tactic, the (conclusion of the) fact
+  (** To use the [apply] tactic, the (conclusion of the) fact
     being applied must match the goal exactly -- for example, [apply]
     will not work if the left and right sides of the equality are
     swapped. *)
@@ -112,13 +114,19 @@ Proof.
     just hypotheses in the context.  Remember that [SearchAbout] is
     your friend.) *)
 
+SearchAbout rev.
+
 Theorem rev_exercise1 : forall (l l' : list nat),
      l = rev l' ->
      l' = rev l.
 Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+  intros l n H.
+  symmetry.
+  rewrite H.
+  apply rev_involutive.
+Qed.
 
+  
 (** **** Exercise: 1 star, optional (apply_rewrite)  *)
 (** Briefly explain the difference between the tactics [apply] and
     [rewrite].  What are the situations where both can usefully be
@@ -258,8 +266,13 @@ Example inversion_ex3 : forall (X : Type) (x y z : X) (l j : list X),
   y :: l = x :: j ->
   x = y.
 Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+  intros.
+  inversion H0.
+  reflexivity.
+Qed.
+
+
+Check forall (P : Prop), Prop.
 
 (** While the injectivity of constructors allows us to reason
     that [forall (n m : nat), S n = S m -> n = m], the converse of
@@ -332,8 +345,11 @@ Example inversion_ex6 : forall (X : Type)
   y :: l = z :: j ->
   x = z.
 Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+  intros.
+  inversion H.
+Qed.
+
+  (** [] *)
 
 (** To summarize this discussion, suppose [H] is a hypothesis in the
     context or a previously proven lemma of the form
@@ -409,12 +425,42 @@ Proof.
 (** Practice using "in" variants in this exercise.  (Hint: use
     [plus_n_Sm].) *)
 
+Search plus.
+
 Theorem plus_n_n_injective : forall n m,
      n + n = m + m ->
      n = m.
 Proof.
-  intros n. induction n as [| n'].
-    (* FILL IN HERE *) Admitted.
+  intros n.
+  induction n. {
+    intros.
+    simpl in H.
+    induction m. {
+      reflexivity.
+    } {
+      simpl in H.
+      discriminate H.
+    }
+  } {
+    intros m.
+    induction m. {
+      intros H. discriminate.
+    } {
+      intros H.
+      simpl in H.
+      rewrite (plus_comm n (S n)) in H.
+      rewrite (plus_comm m (S m)) in H.
+      simpl in H.
+      assert (t : n + n = m + m). {
+        inversion H. reflexivity.
+      }
+      rewrite (IHn m t).
+      reflexivity.
+    }
+  } 
+Qed.
+
+    
 (** [] *)
 
 (* ###################################################### *)
@@ -696,8 +742,34 @@ Theorem nth_error_after_last: forall (n : nat) (X : Type) (l : list X),
      length l = n ->
      nth_error l n = None.
 Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+  intros n X.
+  induction n. {
+    intros l.
+    induction l. {
+      intros H.
+      reflexivity.
+    } {
+      intros H.
+      discriminate.
+    }
+  } {
+    intros l.
+    induction l. {
+      intros H.
+      simpl.
+      reflexivity.
+    } {
+      intros H.
+      simpl.
+      simpl in H.
+      apply IHn.
+      inversion H.
+      reflexivity.
+    }
+  }
+Qed.
+
+Print nth_error_after_last.
 
 (** **** Exercise: 3 stars, optional (app_length_cons)  *)
 (** Prove this by induction on [l1], without using [app_length]
@@ -893,13 +965,21 @@ Proof.
     in which all occurrences of [e] (in the goal and in the context)
     are replaced by [c]. *)
 
+Print combine.
+
 (** **** Exercise: 3 stars, optional (combine_split)  *)
 Theorem combine_split : forall X Y (l : list (X * Y)) l1 l2,
   split l = (l1, l2) ->
   combine l1 l2 = l.
 Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+  intros X Y l l1 l2 H.
+  destruct (combine l1 l2). {
+    induction l. {
+      reflexivity.
+    } {
+      simpl. discriminate.
+  
+  (** [] *)
 
 (** However, [destruct]ing compound expressions requires a bit of
     care, as such [destruct]s can sometimes erase information we need
