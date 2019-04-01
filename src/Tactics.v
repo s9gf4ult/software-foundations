@@ -972,13 +972,8 @@ Theorem combine_split : forall X Y (l : list (X * Y)) l1 l2,
   split l = (l1, l2) ->
   combine l1 l2 = l.
 Proof.
-  intros X Y l l1 l2 H.
-  destruct (combine l1 l2). {
-    induction l. {
-      reflexivity.
-    } {
-      simpl. discriminate.
-  
+Abort.
+
   (** [] *)
 
 (** However, [destruct]ing compound expressions requires a bit of
