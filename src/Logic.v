@@ -378,7 +378,10 @@ Proof.
 Fact not_implies_our_not : forall (P:Prop),
   ~ P -> (forall (Q:Prop), P -> Q).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros P notP Q p.
+  destruct (notP p).
+Qed.
+  
 (** [] *)
 
 (** This is how we use [not] to state that [0] and [1] are different
@@ -386,7 +389,8 @@ Proof.
 
 Theorem zero_not_one : ~(0 = 1).
 Proof.
-  intros contra. inversion contra.
+  intros contra.
+  inversion contra.
 Qed.
 
 (** Such inequality statements are frequent enough to warrant a
@@ -410,7 +414,7 @@ Qed.
 Theorem not_False :
   ~ False.
 Proof.
-  unfold not. intros H. destruct H. Qed.
+  unfold not. intros H. inversion H. Qed.
 
 Theorem contradiction_implies_anything : forall P Q : Prop,
   (P /\ ~P) -> Q.
@@ -422,8 +426,12 @@ Proof.
 Theorem double_neg : forall P : Prop,
   P -> ~~P.
 Proof.
-  (* WORKED IN CLASS *)
-  intros P H. unfold not. intros G. apply G. apply H.  Qed.
+  intros.
+  unfold not.
+  intros notP.
+  apply (notP H).
+Qed.
+  
 
 (** **** Exercise: 2 stars, advanced, recommended (double_neg_inf)  *)
 (** Write an informal proof of [double_neg]:
@@ -439,17 +447,25 @@ Proof.
 Theorem contrapositive : forall P Q : Prop,
   (P -> Q) -> (~Q -> ~P).
 Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+  intros P Q H notQ.
+  unfold not.
+  intros p.
+  apply notQ.
+  apply H.
+  apply p.
+Qed.
 
+  
 (** **** Exercise: 1 star (not_both_true_and_false)  *)
 Theorem not_both_true_and_false : forall P : Prop,
   ~ (P /\ ~P).
 Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+  intros P H.
+  destruct H as [p notP].
+  apply (notP p).
+Qed.
 
-(** **** Exercise: 1 star, advanced (informal_not_PNP)  *)
+  (** **** Exercise: 1 star, advanced (informal_not_PNP)  *)
 (** Write an informal proof (in English) of the proposition [forall P
     : Prop, ~(P /\ ~P)]. *)
 
@@ -549,22 +565,64 @@ Qed.
 Theorem iff_refl : forall P : Prop,
   P <-> P.
 Proof.
-  (* FILL IN HERE *) Admitted.
-
+  intros P.
+  split; intros p; apply p.
+Qed.
+  
 Theorem iff_trans : forall P Q R : Prop,
   (P <-> Q) -> (Q <-> R) -> (P <-> R).
 Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+  intros P Q R [pq qp] [qr rq].
+  split. {
+    intros p.
+    apply qr.
+    apply (pq p).
+  } {
+    intros r.
+    apply qp.
+    apply (rq r).
+  }
+Qed.
 
-(** **** Exercise: 3 stars (or_distributes_over_and)  *)
+Print iff_trans.
+
+    (** **** Exercise: 3 stars (or_distributes_over_and)  *)
 Theorem or_distributes_over_and : forall P Q R : Prop,
   P \/ (Q /\ R) <-> (P \/ Q) /\ (P \/ R).
 Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+  intros P Q R.
+  split. {
+    intros pqr.
+    destruct pqr. {
+      split. {
+        apply (or_introl H).
+      } {
+        apply (or_introl H).
+      } 
+    } {
+      destruct H as [q r].
+      split. {
+        apply (or_intror q).
+      } {
+        apply (or_intror r).
+      }
+    }
+  } {
+    intros [pq pr].
+    destruct pq as [p|q]. {
+      apply (or_introl p).
+    } {
+      destruct pr as [p|r]. {
+        apply (or_introl p).
+      } {
+        apply or_intror.
+        apply (conj q r).
+      }
+    }
+  }
+Qed.
 
-(** Some of Coq's tactics treat [iff] statements specially, avoiding
+    (** Some of Coq's tactics treat [iff] statements specially, avoiding
     the need for some low-level proof-state manipulation.  In
     particular, [rewrite] and [reflexivity] can be used with [iff]
     statements, not just equalities.  To enable this behavior, we need
