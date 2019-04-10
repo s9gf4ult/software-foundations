@@ -2,6 +2,9 @@
 
 Require Export Tactics.
 
+Require Export Lists.
+
+
 (** In previous chapters, we have seen many examples of factual
     claims (_propositions_) and ways of presenting evidence of their
     truth (_proofs_).  In particular, we have worked extensively with
@@ -143,12 +146,35 @@ Proof.
   - (* 2 + 2 = 4 *) reflexivity.
 Qed.
 
+Lemma m_plus_0_is_0: forall m n : nat, m + n = 0 -> n = 0.
+Proof.
+  intros m n Eq0.
+  induction m. {
+    simpl in Eq0.
+    apply Eq0.
+  } {
+    exfalso.
+    simpl in Eq0.
+    inversion Eq0.
+  }
+Qed.
+
+
 (** **** Exercise: 2 stars (and_exercise)  *)
 Example and_exercise :
   forall n m : nat, n + m = 0 -> n = 0 /\ m = 0.
 Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+  intros n m H.
+  apply and_intro. {
+    apply (m_plus_0_is_0 m n).
+    rewrite plus_comm in H.
+    apply H.
+  } {
+    apply (m_plus_0_is_0 n m).
+    apply H.
+  }
+Qed.
+
 
 (** So much for proving conjunctive statements.  To go in the other
     direction -- i.e., to _use_ a conjunctive hypothesis to prove
@@ -221,8 +247,9 @@ Proof.
 Lemma proj2 : forall P Q : Prop,
   P /\ Q -> Q.
 Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+  intros P Q [p q].
+  apply q.
+Qed.
 
 (** Finally, we sometimes need to rearrange the order of conjunctions
     and/or the grouping of conjuncts in multi-way conjunctions.  The
@@ -237,7 +264,7 @@ Proof.
   split.
     - (* left *) apply HQ.
     - (* right *) apply HP.  Qed.
-  
+
 (** **** Exercise: 2 stars (and_assoc)  *)
 (** (In the following proof of associativity, notice how the _nested_
     intro pattern breaks the hypothesis [H : P /\ (Q /\ R)] down into
@@ -381,7 +408,7 @@ Proof.
   intros P notP Q p.
   destruct (notP p).
 Qed.
-  
+
 (** [] *)
 
 (** This is how we use [not] to state that [0] and [1] are different
@@ -431,7 +458,7 @@ Proof.
   intros notP.
   apply (notP H).
 Qed.
-  
+
 
 (** **** Exercise: 2 stars, advanced, recommended (double_neg_inf)  *)
 (** Write an informal proof of [double_neg]:
@@ -455,7 +482,7 @@ Proof.
   apply p.
 Qed.
 
-  
+
 (** **** Exercise: 1 star (not_both_true_and_false)  *)
 Theorem not_both_true_and_false : forall P : Prop,
   ~ (P /\ ~P).
@@ -568,7 +595,7 @@ Proof.
   intros P.
   split; intros p; apply p.
 Qed.
-  
+
 Theorem iff_trans : forall P Q R : Prop,
   (P <-> Q) -> (Q <-> R) -> (P <-> R).
 Proof.
@@ -598,7 +625,7 @@ Proof.
         apply (or_introl H).
       } {
         apply (or_introl H).
-      } 
+      }
     } {
       destruct H as [q r].
       split. {
@@ -718,18 +745,44 @@ Proof.
 Theorem dist_not_exists : forall (X:Type) (P : X -> Prop),
   (forall x, P x) -> ~ (exists x, ~ P x).
 Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+  intros.
+  unfold not.
+  intros [x notP].
+  apply notP.
+  apply (H x).
+Qed.
 
-(** **** Exercise: 2 stars (dist_exists_or)  *)
+  (** **** Exercise: 2 stars (dist_exists_or)  *)
 (** Prove that existential quantification distributes over
     disjunction. *)
 
 Theorem dist_exists_or : forall (X:Type) (P Q : X -> Prop),
   (exists x, P x \/ Q x) <-> (exists x, P x) \/ (exists x, Q x).
 Proof.
-   (* FILL IN HERE *) Admitted.
-(** [] *)
+  intros.
+  split. {
+    intros [x [Px | Qx]]. {
+      apply or_introl.
+      exists x.
+      apply Px.
+    } {
+      apply or_intror.
+      exists x.
+      apply Qx.
+    }
+  } {
+    intros [[x Px] | [x Qx]]. {
+      exists x.
+      apply or_introl.
+      apply Px.
+    } {
+      exists x.
+      apply or_intror.
+      apply Qx.
+    }
+  }
+Qed.
+
 
 (* #################################################################### *)
 (** * Programming with Propositions *)
@@ -753,8 +806,8 @@ Proof.
 
 Fixpoint In {A : Type} (x : A) (l : list A) : Prop :=
   match l with
-  | [] => False
-  | x' :: l' => x' = x \/ In x l'
+  | nil => False
+  | cons x' l' => x' = x \/ In x l'
   end.
 
 (** When [In] is applied to a concrete list, it expands into a
@@ -1460,7 +1513,7 @@ Definition double_negation_elimination := forall P:Prop,
 
 Definition de_morgan_not_and_not := forall P Q:Prop,
   ~(~P /\ ~Q) -> P\/Q.
-  
+
 Definition implies_to_or := forall P Q:Prop,
   (P->Q) -> (~P\/Q).
 
