@@ -895,16 +895,27 @@ Proof.
       }
     }
   } {
-    intros ex.
+    intros [x [fxb inxl]].
     induction l. {
       simpl.
-      simpl in ex.
-      destruct ex as [a [fx false]].
-      apply false.
+      simpl in inxl.
+      apply inxl.
     } {
-
+      simpl.
+      simpl in inxl.
+      destruct inxl. {
+        left.
+        rewrite H.
+        apply fxb.
+      } {
+        right.
+        apply IHl.
+        apply H.
+      }
     }
   }
+Qed.
+
 
 (** **** Exercise: 2 stars (in_app_iff)  *)
 Lemma in_app_iff : forall A l l' (a:A),
