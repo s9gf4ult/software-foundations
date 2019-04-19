@@ -916,13 +916,63 @@ Proof.
   }
 Qed.
 
-
 (** **** Exercise: 2 stars (in_app_iff)  *)
 Lemma in_app_iff : forall A l l' (a:A),
   In a (l++l') <-> In a l \/ In a l'.
 Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+  intros A l l'.
+  split. {
+    intros ina.
+    induction l. {
+      simpl.
+      simpl in ina.
+      right.
+      apply ina.
+    } {
+      simpl in ina.
+      destruct ina. {
+        left.
+        simpl.
+        left.
+        apply H.
+      } {
+        destruct (IHl H). {
+          left.
+          simpl.
+          right.
+          apply H0.
+        } {
+          right.
+          apply H0.
+        }
+      }
+    }
+  } {
+    intros inor.
+    induction l. {
+      simpl.
+      destruct inor. {
+        exfalso.
+        simpl in H.
+        apply H.
+      } {
+        apply H.
+      }
+    } {
+      simpl.
+      simpl in inor.
+      rewrite <- or_assoc in inor.
+      destruct inor. {
+        left.
+        apply H.
+      } {
+        right.
+        apply (IHl H).
+      }
+    }
+  }
+Qed.
+
 
 (** **** Exercise: 3 stars (All)  *)
 (** Recall that functions returning propositions can be seen as
@@ -936,15 +986,26 @@ Proof.
     restate the left-hand side of [All_In].) *)
 
 Fixpoint All {T} (P : T -> Prop) (l : list T) : Prop :=
-  (* FILL IN HERE *) admit.
+  match l with
+  | nil       => False
+  | cons x xs => P x /\ All P xs
+  end.
 
 Lemma All_In :
   forall T (P : T -> Prop) (l : list T),
     (forall x, In x l -> P x) <->
     All P l.
 Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+  intros T P l.
+  split. {
+    intros H.
+    induction l. {
+      simpl.
+      simpl in H.
+
+    }
+  }
+
 
 (** **** Exercise: 3 stars (combine_odd_even)  *)
 (** Complete the definition of the [combine_odd_even] function below.
