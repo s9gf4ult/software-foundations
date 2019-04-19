@@ -987,7 +987,7 @@ Qed.
 
 Fixpoint All {T} (P : T -> Prop) (l : list T) : Prop :=
   match l with
-  | nil       => False
+  | nil       => True
   | cons x xs => P x /\ All P xs
   end.
 
@@ -1001,11 +1001,44 @@ Proof.
     intros H.
     induction l. {
       simpl.
-      simpl in H.
-
+      apply I.
+    } {
+      simpl.
+      split. {
+        apply (H x).
+        simpl.
+        left.
+        reflexivity.
+      } {
+        apply IHl.
+        intros x0 inx0l.
+        apply H.
+        simpl.
+        right.
+        apply inx0l.
+      }
+    }
+  } {
+    intros all x inxl.
+    induction l. {
+      exfalso.
+      apply inxl.
+    } {
+      destruct inxl. {
+        simpl in all.
+        rewrite <- H.
+        apply all.
+      } {
+        apply IHl. {
+          simpl in all.
+          apply all.
+        } {
+          apply H.
+        }
+      }
     }
   }
-
+Qed.
 
 (** **** Exercise: 3 stars (combine_odd_even)  *)
 (** Complete the definition of the [combine_odd_even] function below.
