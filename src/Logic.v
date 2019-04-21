@@ -1047,8 +1047,71 @@ Qed.
     equivalent to [Podd n] when [n] is odd and equivalent to [Peven n]
     otherwise. *)
 
-Definition combine_odd_even (Podd Peven : nat -> Prop) : nat -> Prop :=
-  (* FILL IN HERE *) admit.
+Lemma negbNegb : forall a b, negb a = b <-> a = negb b.
+Proof.
+  intros a b.
+  split; destruct a; destruct b; (reflexivity || discriminate).
+Qed.
+
+Lemma evenNotOdd : forall (n : nat) (b : bool), evenb n = b <-> oddb n = negb b.
+Proof.
+  induction n. {
+    intros b.
+    destruct b; firstorder.
+  } {
+    intros b.
+    rewrite <- negbNegb.
+    unfold oddb.
+    rewrite -> negb_involutive.
+    reflexivity.
+  }
+Qed.
+
+Lemma evenFlip: forall (n : nat) (b : bool), evenb n = b -> evenb (S n) = negb b.
+Proof.
+  intros n b enb.
+  induction n. {
+    destruct b; (reflexivity || discriminate).
+  } {
+    simpl.
+    destruct n. {
+      destruct b; (reflexivity || discriminate).
+    } {
+      destruct b. {
+
+      }
+    }
+
+    unfold evenb in enb.
+
+    rewrite enb in IHn.
+    inversion enb.
+    rewrite H.
+
+  }
+
+Lemma evenSOdd : forall (n : nat), evenb n = true <-> oddb (S n) = true.
+Proof.
+  intros n.
+  split. {
+
+    unfold oddb.
+    intros event.
+    rewrite negbNegb.
+    unfold evenb.
+
+    induction n. {
+      reflexivity.
+    } {
+      simpl.
+      inversion event.
+      simpl in IHn.
+    }
+
+  }
+
+Definition combine_odd_even (Podd Peven : nat -> Prop) : nat -> Prop
+  := fun n => if oddb n then Podd n else Peven n.
 
 (** To test your definition, prove the following facts: *)
 
@@ -1058,7 +1121,18 @@ Theorem combine_odd_even_intro :
     (oddb n = false -> Peven n) ->
     combine_odd_even Podd Peven n.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros Podd Peven n oddt event.
+  induction n. {
+    unfold combine_odd_even.
+    simpl.
+    apply event.
+    reflexivity.
+  } {
+    unfold combine_odd_even.
+    unfold oddb.
+    simpl.
+  }
+
 
 Theorem combine_odd_even_elim_odd :
   forall (Podd Peven : nat -> Prop) (n : nat),

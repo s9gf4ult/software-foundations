@@ -6,7 +6,7 @@
           ###  PLEASE DO NOT DISTRIBUTE SOLUTIONS PUBLICLY  ###
           #####################################################
 
-   (See the [Preface] for why.) 
+   (See the [Preface] for why.)
 
 *)
 
@@ -417,12 +417,39 @@ Check minustwo.
     [n-2] is even.  To write such functions, we use the keyword
     [Fixpoint]. *)
 
-Fixpoint evenb (n:nat) : bool :=
+Lemma negb_elim : forall b, negb (negb b) = b.
+Proof.
+  destruct b; (reflexivity || discriminate).
+Qed.
+
+Fixpoint evenb (n : nat) : bool :=
+  match n with
+    | O     => true
+    | (S n) => negb (evenb n)
+  end.
+
+Fixpoint evenbf (n:nat) : bool :=
   match n with
   | O        => true
   | S O      => false
   | S (S n') => evenb n'
   end.
+
+Lemma evenbEqualEvenbf : forall (n : nat), evenb n = evenbf n.
+Proof.
+  destruct n. {
+    reflexivity.
+  } {
+    destruct n. {
+      simpl.
+      reflexivity.
+    } {
+      simpl.
+      apply negb_elim.
+    }
+  }
+Qed.
+
 
 (** We can define [oddb] by a similar [Fixpoint] declaration, but here
     is a simpler definition that is a bit easier to work with: *)
@@ -792,8 +819,8 @@ Proof.
 (** We can also use the [rewrite] tactic with a previously proved
     theorem instead of a hypothesis from the context. If the statement
     of the previously proved theorem involves quantified variables,
-    as in the example below, Coq tries to instantiate them 
-    by matching with the current goal. *)   
+    as in the example below, Coq tries to instantiate them
+    by matching with the current goal. *)
 
 Theorem mult_0_plus : forall n m : nat,
   (0 + n) * m = n * m.
@@ -1186,4 +1213,3 @@ Proof.
 (** [] *)
 
 (** $Date: 2016-05-26 16:17:19 -0400 (Thu, 26 May 2016) $ *)
-
