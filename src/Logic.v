@@ -1053,6 +1053,12 @@ Proof.
   split; destruct a; destruct b; (reflexivity || discriminate).
 Qed.
 
+Lemma negEqElim : forall a b, negb a = negb b <-> a = b.
+Proof.
+  intros a b.
+  split; destruct a; destruct b; (reflexivity || discriminate).
+Qed.
+
 Lemma evenNotOdd : forall (n : nat) (b : bool), evenb n = b <-> oddb n = negb b.
 Proof.
   induction n. {
@@ -1070,48 +1076,23 @@ Qed.
 Lemma evenFlip: forall (n : nat) (b : bool), evenb n = b -> evenb (S n) = negb b.
 Proof.
   intros n b enb.
-  induction n. {
-    destruct b; (reflexivity || discriminate).
-  } {
-    simpl.
-    destruct n. {
-      destruct b; (reflexivity || discriminate).
-    } {
-      destruct b. {
+  simpl.
+  rewrite negEqElim.
+  apply enb.
+Qed.
 
-      }
-    }
-
-    unfold evenb in enb.
-
-    rewrite enb in IHn.
-    inversion enb.
-    rewrite H.
-
-  }
-
-Lemma evenSOdd : forall (n : nat), evenb n = true <-> oddb (S n) = true.
+Lemma evenSOdd : forall (n : nat) (b : bool), evenb n = b <-> oddb (S n) = b.
 Proof.
-  intros n.
-  split. {
+  intros n b.
+  unfold oddb.
+  simpl.
+  rewrite negb_involutive.
+  reflexivity.
+Qed.
 
-    unfold oddb.
-    intros event.
-    rewrite negbNegb.
-    unfold evenb.
-
-    induction n. {
-      reflexivity.
-    } {
-      simpl.
-      inversion event.
-      simpl in IHn.
-    }
-
-  }
 
 Definition combine_odd_even (Podd Peven : nat -> Prop) : nat -> Prop
-  := fun n => if oddb n then Podd n else Peven n.
+  := fun n => if evenb n then Peven n else Podd n.
 
 (** To test your definition, prove the following facts: *)
 
@@ -1122,17 +1103,17 @@ Theorem combine_odd_even_intro :
     combine_odd_even Podd Peven n.
 Proof.
   intros Podd Peven n oddt event.
-  induction n. {
-    unfold combine_odd_even.
-    simpl.
-    apply event.
-    reflexivity.
+  unfold combine_odd_even.
+  unfold oddb in oddt.
+  unfold oddb in event.
+  rewrite negbNegb in oddt.
+  rewrite negbNegb in event.
+  destruct (evenb n). {
+    apply (event eq_refl).
   } {
-    unfold combine_odd_even.
-    unfold oddb.
-    simpl.
+    apply (oddt eq_refl).
   }
-
+Qed.
 
 Theorem combine_odd_even_elim_odd :
   forall (Podd Peven : nat -> Prop) (n : nat),
@@ -1140,7 +1121,14 @@ Theorem combine_odd_even_elim_odd :
     oddb n = true ->
     Podd n.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros Podd Peven n comb oddt.
+  unfold combine_odd_even in comb.
+  unfold oddb in oddt.
+  apply negbNegb in oddt.
+  rewrite oddt in comb.
+  simpl in comb.
+  apply comb.
+Qed.
 
 Theorem combine_odd_even_elim_even :
   forall (Podd Peven : nat -> Prop) (n : nat),
@@ -1148,8 +1136,14 @@ Theorem combine_odd_even_elim_even :
     oddb n = false ->
     Peven n.
 Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+  intros Podd Peven n comb oddf.
+  unfold combine_odd_even in comb.
+  unfold oddb in oddf.
+  rewrite negbNegb in oddf.
+  rewrite oddf in comb.
+  simpl in comb.
+  apply comb.
+Qed.
 
 (* #################################################################### *)
 (** * Applying Theorems to Arguments *)
