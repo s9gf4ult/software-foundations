@@ -1365,10 +1365,43 @@ Definition tr_rev {X} (l : list X) : list X :=
     call); a decent compiler will generate very efficient code in this
     case.  Prove that both definitions are indeed equivalent. *)
 
+Lemma rev_append_rev:
+  forall {X : Type} (x : X) (l : list X),
+    rev_append l [x] = rev_append l [] ++ [x].
+Proof.
+  intros X x l.
+  induction l. {
+    reflexivity.
+  } {
+    simpl.
+    simpl in IHl.
+    unfold "++".
+    unfold "++" in IHl.
+    
+    destruct l. {
+      reflexivity.
+    } {
+      unfold rev_append.
+      simpl.
+    }
+  }
 
 Lemma tr_rev_correct : forall X, @tr_rev X = @rev X.
-(* FILL IN HERE *) Admitted.
-(** [] *)
+Proof.
+  intros X.
+  apply functional_extensionality. intros x.
+  induction x. {
+    reflexivity.
+  } {
+    unfold tr_rev.
+    simpl.
+    unfold tr_rev in IHx.
+    rewrite <- IHx.
+    apply rev_append_rev.
+  }
+Qed.
+
+Print Assumptions tr_rev_correct.
 
 (** ** Propositions and Booleans *)
 
